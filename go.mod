@@ -1,4 +1,4 @@
-module github.com/wlwanpan/minecraft-wrapper
+module github.com/ByteSizedMarius/go-minecraft-wrapper
 
 go 1.12
 
