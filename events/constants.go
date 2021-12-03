@@ -49,4 +49,6 @@ const (
 	UnknownItem             = "unknown-item"
 	Version                 = "version"
 	WhisperTo               = "whisper-to"
+	WhitelistAdd            = "whitelist-add"
+	WhitelistList           = "whitelist-list"
 )
