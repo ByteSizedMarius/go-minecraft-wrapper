@@ -60,7 +60,7 @@ var gameEventToRegex = map[string]*regexp.Regexp{
 	events.PlayerJoined:     regexp.MustCompile(`(?s)(.*) joined the game`),
 	events.PlayerLeft:       regexp.MustCompile(`(?s)(.*) left the game`),
 	events.PlayerUUID:       regexp.MustCompile(`^UUID of player (?s)(.*) is (?s)(.*)`),
-	events.PlayerSay:        regexp.MustCompile(`<(?s)(.*)> (?s)(.*)`),
+	events.Say:              regexp.MustCompile(`[<\[]((?s)([A-z0-9_]*))[>\]] ((?s)(.*))`),
 	events.Kicked:           regexp.MustCompile(`^Kicked (?s)(.*): (.*)`),
 	events.Seed:             regexp.MustCompile(`^Seed: (.*)`),
 	events.ServerOverloaded: regexp.MustCompile(`^Can't keep up! Is the server overloaded\? Running ([0-9]+)ms or ([0-9]+) ticks behind`),
@@ -78,7 +78,7 @@ var activeGameEvents = map[string]*regexp.Regexp{
 	events.PlayerJoined:     gameEventToRegex[events.PlayerJoined],
 	events.PlayerLeft:       gameEventToRegex[events.PlayerLeft],
 	events.PlayerUUID:       gameEventToRegex[events.PlayerUUID],
-	events.PlayerSay:        gameEventToRegex[events.PlayerSay],
+	events.Say:              gameEventToRegex[events.Say],
 	events.ServerOverloaded: gameEventToRegex[events.ServerOverloaded],
 	events.TimeIs:           gameEventToRegex[events.TimeIs],
 	events.Version:          gameEventToRegex[events.Version],
@@ -131,7 +131,7 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 			return handlePlayerUUIDEvent(matches, tick)
 		case events.PlayerPos:
 			return handlePlayerPosEvent(matches, tick)
-		case events.PlayerSay:
+		case events.Say:
 			return handlePlayerSayEvent(matches, tick)
 		case events.Version:
 			return handleVersionEvent(matches)
@@ -307,11 +307,11 @@ func handlePlayerPosEvent(matches []string, tick int) (events.GameEvent, events.
 }
 
 func handlePlayerSayEvent(matches []string, tick int) (events.GameEvent, events.EventType) {
-	psEvent := events.NewGameEvent(events.PlayerSay)
+	psEvent := events.NewGameEvent(events.Say)
 	psEvent.Tick = tick
 	psEvent.Data = map[string]string{
-		"player_name":    matches[1],
-		"player_message": strings.ReplaceAll(matches[2], "\r", ""),
+		"name":    matches[1],
+		"message": strings.ReplaceAll(matches[3], "\r", ""),
 	}
 	return psEvent, events.TypeGame
 }
