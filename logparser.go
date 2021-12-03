@@ -1,6 +1,7 @@
 package wrapper
 
 import (
+	"fmt"
 	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
 	"regexp"
 	"strconv"
@@ -67,8 +68,8 @@ var gameEventToRegex = map[string]*regexp.Regexp{
 	events.UnknownItem:      regexp.MustCompile(`^Unknown item (.*)`),
 	events.Version:          regexp.MustCompile(`^Starting minecraft server version (.*)`),
 	events.WhisperTo:        regexp.MustCompile(`^You whisper to (?s)(.*): (.*)`),
-	events.WhitelistAdd:     regexp.MustCompile(`Added (?s)(.*) to the whitelist`),
 	events.WhitelistList:    regexp.MustCompile(`There are [0-9]* whitelisted players: (?s)(.)*`),
+	events.WhitelistAdd:     regexp.MustCompile(`Added (?s)(.*) to the whitelist|That player does not exist|Player is already whitelisted`),
 }
 
 var activeGameEvents = map[string]*regexp.Regexp{
@@ -82,7 +83,6 @@ var activeGameEvents = map[string]*regexp.Regexp{
 	events.Version:          gameEventToRegex[events.Version],
 	events.PlayerPos:        gameEventToRegex[events.PlayerPos],
 	events.WhitelistAdd:     gameEventToRegex[events.WhitelistAdd],
-	events.WhitelistList:    gameEventToRegex[events.WhitelistList],
 }
 
 func registerGameEvent(ev string) {
@@ -147,6 +147,7 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 		case events.Banned:
 			return handleBanned(matches)
 		case events.WhitelistAdd:
+			fmt.Println("event generiert")
 			return handleWhiteListAdd(matches)
 		case events.WhitelistList:
 			return handleWhiteListList(matches)
@@ -164,10 +165,21 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 
 func handleWhiteListAdd(matches []string) (events.GameEvent, events.EventType) {
 	waEvent := events.NewGameEvent(events.WhitelistAdd)
-	waEvent.Data = map[string]string{
-		"added_player_name": matches[1],
+
+	if strings.Contains(matches[0], "already") || strings.Contains(matches[0], "exist") {
+		waEvent.Data = map[string]string{
+			"error": matches[0],
+		}
+	} else if strings.Contains(matches[0], "Added") {
+		waEvent.Data = map[string]string{
+			"added_player_name": matches[1],
+		}
+	} else {
+		// todo remove if its fine :)
+		panic("????" + fmt.Sprint(matches))
 	}
-	return waEvent, events.TypeGame
+
+	return waEvent, events.TypeCmd
 }
 
 func handleWhiteListList(matches []string) (events.GameEvent, events.EventType) {

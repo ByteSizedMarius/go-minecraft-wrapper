@@ -318,12 +318,12 @@ func (w *Wrapper) processCmdToEventArr(cmd string, timeout time.Duration, eve st
 }
 
 func (w *Wrapper) WhitelistAdd(player string) (events.GameEvent, error) {
-	ev, err := w.processCmdToEvent(strings.Join([]string{"whitelist", "add", player}, " "), time.Millisecond*500, events.WhitelistAdd)
+	ev, err := w.processCmdToEvent(strings.Join([]string{"whitelist", "add", player}, " "), time.Second*2, events.WhitelistAdd)
 	return ev, err
 }
 
 func (w *Wrapper) WhitelistList() (events.GameEvent, error) {
-	return w.processCmdToEvent(strings.Join([]string{"whitelist", "list"}, " "), time.Millisecond*500, events.WhitelistList)
+	return w.processCmdToEvent(strings.Join([]string{"whitelist", "list"}, " "), time.Second*2, events.WhitelistList)
 }
 
 // BanIP adds the input IP address to the servers blacklisted IPs list.
