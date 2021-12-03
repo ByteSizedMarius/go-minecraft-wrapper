@@ -56,7 +56,7 @@ var gameEventToRegex = map[string]*regexp.Regexp{
 	events.Give:            regexp.MustCompile(`^Gave ([0-9]+) \[(?s)(.*) (?s)(.*)\] to (?s)(.*)`),
 	events.NoPlayerFound:   regexp.MustCompile(`^No player was found`),
 	// TODO: There is an insane amount of death messages: https://minecraft.gamepedia.com/Death_messages, support all?
-	events.PlayerDied:       regexp.MustCompile(`(?s)(.*) (was shot|was pummeled|drowned|blew up|was blown up|was killed by|hit the ground|fell|was slain|suffocated)(.*)`),
+	events.PlayerDied:       events.PlayerDied:       regexp.MustCompile(`(?s)(.*) (died|was squished too much|was squashed by|was poked|was killed|didn't want to live in the same|withered|froze to death|was fireballed by|was stung to death|starved to death|discovered the floor was lava|was shot|was pummeled|was pricked|experienced kinetic energy|drowned|blew up|was struck by lightning|was blown up|tried to swim in lava|went off with a bang|hit the ground|fell|was burnt to a crisp|was impaled|burned to death|was slain|walked into|was skewered|went up in flames|suffocated)(.*)`),
 	events.PlayerJoined:     regexp.MustCompile(`(?s)(.*) joined the game`),
 	events.PlayerLeft:       regexp.MustCompile(`(?s)(.*) left the game`),
 	events.PlayerUUID:       regexp.MustCompile(`^UUID of player (?s)(.*) is (?s)(.*)`),
