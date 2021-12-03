@@ -3,7 +3,7 @@ package wrapper
 import (
 	"sync"
 
-	"github.com/wlwanpan/minecraft-wrapper/events"
+	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
 )
 
 type eventsQueue struct {

@@ -1,7 +1,7 @@
 package wrapper
 
 import (
-	"github.com/wlwanpan/minecraft-wrapper/events"
+	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
 	"regexp"
 	"strconv"
 	"strings"

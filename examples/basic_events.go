@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 
-	wrapper "github.com/wlwanpan/minecraft-wrapper"
+	wrapper "github.com/ByteSizedMarius/go-minecraft-wrapper"
 )
 
 // In this example we are mimicking the "seed" commands, where when a player

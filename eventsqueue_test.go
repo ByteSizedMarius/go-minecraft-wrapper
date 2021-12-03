@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wlwanpan/minecraft-wrapper/events"
+	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
 )
 
 func TestBasicEventsQueue(t *testing.T) {

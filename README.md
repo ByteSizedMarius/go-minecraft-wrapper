@@ -1,11 +1,8 @@
 # minecraft-wrapper
 
 <p align="center">
-  <img src="https://github.com/wlwanpan/minecraft-wrapper/blob/master/assets/minecraft-gopher.png?raw=true" alt="Minecraft Gopher"/>
+  <img src="https://github.com/ByteSizedMarius/go-minecraft-wrapper/blob/master/assets/minecraft-gopher.png?raw=true" alt="Minecraft Gopher"/>
 </p>
-
-[![GoDoc](https://godoc.org/github.com/wlwanpan/minecraft-wrapper?status.svg)](https://godoc.org/github.com/wlwanpan/minecraft-wrapper)
-[![Build Status](https://codebuild.us-west-2.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoicmdSUjltNjdIODN0dFNQQXgzUUZHajB4WnFxbVVzWDlMOW41VnYvZ2pTUEN5MnBKR1djVUtwNzdraFlNblQyV01HSldGY2w1OXhIZDljOGRqYzlyU3NRPSIsIml2UGFyYW1ldGVyU3BlYyI6IlJieFV3NjZycnM5MGo2QVYiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master)](https://us-west-2.console.aws.amazon.com/codesuite/codebuild/597927659010/projects/minecraft-wrapper)
 
 ## What is minecraft-wrapper?
 
@@ -14,7 +11,7 @@ Wrapper is a Go package that wraps a Minecraft Server (JE) and interacts with it
 ## Installation
 
 ```bash
-go get github.com/wlwanpan/minecraft-wrapper
+go get github.com/ByteSizedMarius/go-minecraft-wrapper
 ```
 
 ## Usage
@@ -82,7 +79,7 @@ Note: This package is developed and tested on Minecraft 1.16, though most functi
 ## Overview
 
 <p align="center">
-  <img src="https://github.com/wlwanpan/minecraft-wrapper/blob/master/assets/architecture.png?raw=true" alt="Minecraft Wrapper Overview"/>
+  <img src="https://github.com/ByteSizedMarius/go-minecraft-wrapper/blob/master/assets/architecture.png?raw=true" alt="Minecraft Wrapper Overview"/>
 </p>
 
 If you are interested, you can visit this [Medium article](https://levelup.gitconnected.com/lets-build-a-minecraft-server-wrapper-in-go-122c087e0023) to learn some of the basic inner working of the wrapper.

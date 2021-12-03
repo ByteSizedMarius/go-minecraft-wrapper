@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/wlwanpan/minecraft-wrapper/events"
+	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
 )
 
 func testParsedEvents(t *testing.T, evs []events.Event, testfilename string) {

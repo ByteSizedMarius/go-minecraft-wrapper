@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
+	"github.com/ByteSizedMarius/go-minecraft-wrapper/snbt"
 	"github.com/looplab/fsm"
-	"github.com/wlwanpan/minecraft-wrapper/events"
-	"github.com/wlwanpan/minecraft-wrapper/snbt"
 )
 
 const (
@@ -283,15 +283,15 @@ func (w *Wrapper) processCmdToEvent(cmd string, timeout time.Duration, evs ...st
 	return ev, nil
 }
 
-func (w *Wrapper) processCmdToEventArr(cmd string, timeout time.Duration, ev string) ([]events.GameEvent, error) {
-	registerGameEvent(ev)
-	evChan := w.eq.get(ev)
+func (w *Wrapper) processCmdToEventArr(cmd string, timeout time.Duration, eve string) ([]events.GameEvent, error) {
+	registerGameEvent(eve)
+	evChan := w.eq.get(eve)
 	if err := w.writeToConsole(cmd); err != nil {
 		return nil, err
 	}
 
 	expectedEventsCount := 1
-	events := []events.GameEvent{}
+	evs := []events.GameEvent{}
 	for {
 		select {
 		case ev := <-evChan:
@@ -299,18 +299,18 @@ func (w *Wrapper) processCmdToEventArr(cmd string, timeout time.Duration, ev str
 			if entryType == "header" {
 				c, ok := ev.Data["entry_count"]
 				if !ok {
-					return events, nil
+					return evs, nil
 				}
 				expectedEventsCount, _ = strconv.Atoi(c)
 				break
 			}
 
-			events = append(events, ev)
-			if len(events) >= expectedEventsCount {
-				return events, nil
+			evs = append(evs, ev)
+			if len(evs) >= expectedEventsCount {
+				return evs, nil
 			}
 		case <-time.After(timeout):
-			return events, ErrWrapperResponseTimeout
+			return evs, ErrWrapperResponseTimeout
 		}
 	}
 }
