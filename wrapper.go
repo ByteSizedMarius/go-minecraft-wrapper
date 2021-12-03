@@ -200,6 +200,8 @@ func (w *Wrapper) handleGameEvent(ev events.GameEvent) {
 		p.UUID = ev.Data["player_uuid"]
 		w.playerList[ev.Data["player_name"]] = p
 	}
+
+	// todo one can probably do this with DataGet instead
 	if ev.Is(events.PlayerPosEvent) {
 		p := w.playerList[ev.Data["player_name"]]
 		p.POS = Pos{ev.Data["player_pos_x"], ev.Data["player_pos_y"], ev.Data["player_pos_z"]}
@@ -315,9 +317,13 @@ func (w *Wrapper) processCmdToEventArr(cmd string, timeout time.Duration, eve st
 	}
 }
 
-func (w *Wrapper) Ban(player, reason string) error {
-	cmd := strings.Join([]string{"ban", player, reason}, " ")
-	return w.writeToConsole(cmd)
+func (w *Wrapper) WhitelistAdd(player string) (events.GameEvent, error) {
+	ev, err := w.processCmdToEvent(strings.Join([]string{"whitelist", "add", player}, " "), time.Millisecond*500, events.WhitelistAdd)
+	return ev, err
+}
+
+func (w *Wrapper) WhitelistList() (events.GameEvent, error) {
+	return w.processCmdToEvent(strings.Join([]string{"whitelist", "list"}, " "), time.Millisecond*500, events.WhitelistList)
 }
 
 // BanIP adds the input IP address to the servers blacklisted IPs list.

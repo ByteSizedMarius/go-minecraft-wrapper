@@ -19,3 +19,5 @@ logs
 server
 server.properties
 dev
+.idea/go-minecraft-wrapper.iml
+.idea/modules.xml
