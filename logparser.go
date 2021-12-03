@@ -68,8 +68,9 @@ var gameEventToRegex = map[string]*regexp.Regexp{
 	events.UnknownItem:      regexp.MustCompile(`^Unknown item (.*)`),
 	events.Version:          regexp.MustCompile(`^Starting minecraft server version (.*)`),
 	events.WhisperTo:        regexp.MustCompile(`^You whisper to (?s)(.*): (.*)`),
-	events.WhitelistList:    regexp.MustCompile(`There are [0-9]* whitelisted players: (?s)(.)*`),
+	events.WhitelistList:    regexp.MustCompile(`There are [0-9]* whitelisted players: (?s)(.*)`),
 	events.WhitelistAdd:     regexp.MustCompile(`Added (?s)(.*) to the whitelist|That player does not exist|Player is already whitelisted`),
+	events.WhitelistRemove:  regexp.MustCompile(`Removed (?s)(.*) from the whitelist|That player does not exist|Player is not whitelisted`),
 }
 
 var activeGameEvents = map[string]*regexp.Regexp{
@@ -83,6 +84,8 @@ var activeGameEvents = map[string]*regexp.Regexp{
 	events.Version:          gameEventToRegex[events.Version],
 	events.PlayerPos:        gameEventToRegex[events.PlayerPos],
 	events.WhitelistAdd:     gameEventToRegex[events.WhitelistAdd],
+	events.WhitelistRemove:  gameEventToRegex[events.WhitelistRemove],
+	events.WhitelistList:    gameEventToRegex[events.WhitelistList],
 }
 
 func registerGameEvent(ev string) {
@@ -147,10 +150,11 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 		case events.Banned:
 			return handleBanned(matches)
 		case events.WhitelistAdd:
-			fmt.Println("event generiert")
-			return handleWhiteListAdd(matches)
+			return handleWhitelistAdd(matches)
+		case events.WhitelistRemove:
+			return handleWhitelistRemove(matches)
 		case events.WhitelistList:
-			return handleWhiteListList(matches)
+			return handleWhitelistList(matches)
 		case events.WhisperTo, events.ExperienceAdd, events.Give, events.NoPlayerFound,
 			events.Kicked, events.UnknownItem:
 			return events.NewGameEvent(e), events.TypeCmd
@@ -163,7 +167,26 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 	return events.NilEvent, events.TypeNil
 }
 
-func handleWhiteListAdd(matches []string) (events.GameEvent, events.EventType) {
+func handleWhitelistRemove(matches []string) (events.GameEvent, events.EventType) {
+	waEvent := events.NewGameEvent(events.WhitelistRemove)
+
+	if strings.Contains(matches[0], "not whitelisted") || strings.Contains(matches[0], "exist") {
+		waEvent.Data = map[string]string{
+			"error": matches[0],
+		}
+	} else if strings.Contains(matches[0], "Removed") {
+		waEvent.Data = map[string]string{
+			"removed_player_name": matches[1],
+		}
+	} else {
+		// todo remove if its fine :)
+		panic("????" + fmt.Sprint(matches))
+	}
+
+	return waEvent, events.TypeCmd
+}
+
+func handleWhitelistAdd(matches []string) (events.GameEvent, events.EventType) {
 	waEvent := events.NewGameEvent(events.WhitelistAdd)
 
 	if strings.Contains(matches[0], "already") || strings.Contains(matches[0], "exist") {
@@ -182,12 +205,12 @@ func handleWhiteListAdd(matches []string) (events.GameEvent, events.EventType) {
 	return waEvent, events.TypeCmd
 }
 
-func handleWhiteListList(matches []string) (events.GameEvent, events.EventType) {
+func handleWhitelistList(matches []string) (events.GameEvent, events.EventType) {
 	wlEvent := events.NewGameEvent(events.WhitelistList)
 	wlEvent.Data = map[string]string{
 		"players": matches[1],
 	}
-	return wlEvent, events.TypeGame
+	return wlEvent, events.TypeCmd
 }
 
 func handleBanList(matches []string) (events.GameEvent, events.EventType) {

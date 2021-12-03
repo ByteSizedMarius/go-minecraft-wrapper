@@ -50,5 +50,6 @@ const (
 	Version                 = "version"
 	WhisperTo               = "whisper-to"
 	WhitelistAdd            = "whitelist-add"
+	WhitelistRemove         = "whitelist-remove"
 	WhitelistList           = "whitelist-list"
 )
