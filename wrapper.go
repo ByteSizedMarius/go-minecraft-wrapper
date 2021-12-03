@@ -148,6 +148,11 @@ func (w *Wrapper) processLogEvents(ctx context.Context) {
 				return
 			}
 
+			if strings.Contains(line, "used by another process") {
+				// this can only happen during development, its just an fyi
+				panic("Server was not stopped correctly. Kill from task-manager")
+			}
+
 			ev, t := w.parseLineToEvent(line)
 			switch t {
 			case events.TypeState:
