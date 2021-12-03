@@ -89,7 +89,7 @@ type Wrapper struct {
 	eq             *eventsQueue
 	playerList     map[string]Player
 	ctxCancelFunc  context.CancelFunc
-	gameEventsChan chan (events.GameEvent)
+	gameEventsChan chan events.GameEvent
 	loadedChan     chan bool
 }
 
@@ -223,8 +223,9 @@ func (w *Wrapper) updatePlayer() {
 				dgo, err := w.DataGet("entity", name)
 				if err != nil {
 					log.Print("err on player position update: " + err.Error())
+				} else {
+					w.playerList[name] = Player{Name: name, LastUpdate: time.Now(), Dimension: dgo.Dimension, POS: Pos{strconv.Itoa(int(dgo.Pos[0])), strconv.Itoa(int(dgo.Pos[1])), strconv.Itoa(int(dgo.Pos[2]))}}
 				}
-				w.playerList[name] = Player{Name: name, LastUpdate: time.Now(), Dimension: dgo.Dimension, POS: Pos{strconv.Itoa(int(dgo.Pos[0])), strconv.Itoa(int(dgo.Pos[0])), strconv.Itoa(int(dgo.Pos[0]))}}
 			}
 			time.Sleep(30 * time.Second)
 		} else {
