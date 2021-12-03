@@ -1,11 +1,10 @@
 package wrapper
 
 import (
+	"github.com/wlwanpan/minecraft-wrapper/events"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/wlwanpan/minecraft-wrapper/events"
 )
 
 // LogParser is an interface func to decode any server log line
@@ -44,19 +43,19 @@ var stateEventToRegexp = map[string]*regexp.Regexp{
 }
 
 var gameEventToRegex = map[string]*regexp.Regexp{
-	events.Banned:          regexp.MustCompile(`^Banned (?s)(.*): (?s)(.*)`),
-	events.BanList:         regexp.MustCompile(`^There are (no|\d+) bans(:|\z)`),
-	events.BanListEntry:    regexp.MustCompile(`(?s)(.*) was banned by Server: (.*)`),
-	events.DataGet:         regexp.MustCompile(`(?s)(.*) has the following (entity|block|storage) data: (.*)`),
-	events.DataGetNoEntity: regexp.MustCompile(`^No (entity|block|storage) was found`),
-	events.DefaultGameMode: regexp.MustCompile(`^The default game mode is now (Survival|Creative|Adventure|Spectator) Mode`),
-	events.Difficulty:      regexp.MustCompile(`^The difficulty (?s)(.*)`),
-	events.ExperienceAdd:   regexp.MustCompile(`^Gave ([0-9]+) experience (levels|points) to (?s)(.*)`),
-	events.ExperienceQuery: regexp.MustCompile(`(?s)(.*) has ([0-9]+) experience (levels|points)`),
-	events.Give:            regexp.MustCompile(`^Gave ([0-9]+) \[(?s)(.*) (?s)(.*)\] to (?s)(.*)`),
-	events.NoPlayerFound:   regexp.MustCompile(`^No player was found`),
-	// TODO: There is an insane amount of death messages: https://minecraft.gamepedia.com/Death_messages, support all?
-	events.PlayerDied:       events.PlayerDied:       regexp.MustCompile(`(?s)(.*) (died|was squished too much|was squashed by|was poked|was killed|didn't want to live in the same|withered|froze to death|was fireballed by|was stung to death|starved to death|discovered the floor was lava|was shot|was pummeled|was pricked|experienced kinetic energy|drowned|blew up|was struck by lightning|was blown up|tried to swim in lava|went off with a bang|hit the ground|fell|was burnt to a crisp|was impaled|burned to death|was slain|walked into|was skewered|went up in flames|suffocated)(.*)`),
+	events.Banned:           regexp.MustCompile(`^Banned (?s)(.*): (?s)(.*)`),
+	events.BanList:          regexp.MustCompile(`^There are (no|\d+) bans(:|\z)`),
+	events.BanListEntry:     regexp.MustCompile(`(?s)(.*) was banned by Server: (.*)`),
+	events.DataGet:          regexp.MustCompile(`(?s)(.*) has the following (entity|block|storage) data: (.*)`),
+	events.DataGetNoEntity:  regexp.MustCompile(`^No (entity|block|storage) was found`),
+	events.DefaultGameMode:  regexp.MustCompile(`^The default game mode is now (Survival|Creative|Adventure|Spectator) Mode`),
+	events.Difficulty:       regexp.MustCompile(`^The difficulty (?s)(.*)`),
+	events.ExperienceAdd:    regexp.MustCompile(`^Gave ([0-9]+) experience (levels|points) to (?s)(.*)`),
+	events.ExperienceQuery:  regexp.MustCompile(`(?s)(.*) has ([0-9]+) experience (levels|points)`),
+	events.Give:             regexp.MustCompile(`^Gave ([0-9]+) \[(?s)(.*) (?s)(.*)\] to (?s)(.*)`),
+	events.NoPlayerFound:    regexp.MustCompile(`^No player was found`),
+	events.PlayerPos:        regexp.MustCompile(`(?s)(.*) has the following entity data: \[(?s)([0-9]*)\.[0-9]*d, (?s)([0-9]*)\.[0-9]*d, (?s)([0-9]*)\.[0-9]*d\]`),
+	events.PlayerDied:       regexp.MustCompile(`(?s)(.*) (died|was squished too much|was squashed by|was poked|was killed|didn't want to live in the same|withered|froze to death|was fireballed by|was stung to death|starved to death|discovered the floor was lava|was shot|was pummeled|was pricked|experienced kinetic energy|drowned|blew up|was struck by lightning|was blown up|tried to swim in lava|went off with a bang|hit the ground|fell|was burnt to a crisp|was impaled|burned to death|was slain|walked into|was skewered|went up in flames|suffocated)(.*)`),
 	events.PlayerJoined:     regexp.MustCompile(`(?s)(.*) joined the game`),
 	events.PlayerLeft:       regexp.MustCompile(`(?s)(.*) left the game`),
 	events.PlayerUUID:       regexp.MustCompile(`^UUID of player (?s)(.*) is (?s)(.*)`),
@@ -79,6 +78,7 @@ var activeGameEvents = map[string]*regexp.Regexp{
 	events.ServerOverloaded: gameEventToRegex[events.ServerOverloaded],
 	events.TimeIs:           gameEventToRegex[events.TimeIs],
 	events.Version:          gameEventToRegex[events.Version],
+	events.PlayerPos:        gameEventToRegex[events.PlayerPos],
 }
 
 func registerGameEvent(ev string) {
@@ -104,6 +104,7 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 		if matches == nil {
 			continue
 		}
+
 		switch e {
 		case events.BanList:
 			return handleBanList(matches)
@@ -121,6 +122,8 @@ func logParserFunc(line string, tick int) (events.Event, events.EventType) {
 			return handlePlayerDied(matches, tick)
 		case events.PlayerUUID:
 			return handlePlayerUUIDEvent(matches, tick)
+		case events.PlayerPos:
+			return handlePlayerPosEvent(matches, tick)
 		case events.PlayerSay:
 			return handlePlayerSayEvent(matches, tick)
 		case events.Version:
@@ -213,11 +216,11 @@ func handlePlayerDied(matches []string, tick int) (events.GameEvent, events.Even
 	pdEvent.Tick = tick
 	pdEvent.Data = map[string]string{
 		"player_name":   matches[1],
-		"death_by":      matches[2],
+		"death_by":      strings.ReplaceAll(matches[2], "\r", ""),
 		"death_details": "",
 	}
 	if len(matches) >= 4 {
-		pdEvent.Data["death_details"] = matches[3]
+		pdEvent.Data["death_details"] = strings.ReplaceAll(matches[3], "\r", "")
 	}
 	return pdEvent, events.TypeGame
 }
@@ -232,12 +235,24 @@ func handlePlayerUUIDEvent(matches []string, tick int) (events.GameEvent, events
 	return puEvent, events.TypeGame
 }
 
+func handlePlayerPosEvent(matches []string, tick int) (events.GameEvent, events.EventType) {
+	puEvent := events.NewGameEvent(events.PlayerPos)
+	puEvent.Tick = tick
+	puEvent.Data = map[string]string{
+		"player_name":  matches[1],
+		"player_pos_x": matches[2],
+		"player_pos_y": matches[3],
+		"player_pos_z": matches[4],
+	}
+	return puEvent, events.TypeGame
+}
+
 func handlePlayerSayEvent(matches []string, tick int) (events.GameEvent, events.EventType) {
 	psEvent := events.NewGameEvent(events.PlayerSay)
 	psEvent.Tick = tick
 	psEvent.Data = map[string]string{
 		"player_name":    matches[1],
-		"player_message": matches[2],
+		"player_message": strings.ReplaceAll(matches[2], "\r", ""),
 	}
 	return psEvent, events.TypeGame
 }

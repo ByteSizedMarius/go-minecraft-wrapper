@@ -73,4 +73,11 @@ type RecipeBook struct {
 type Player struct {
 	Name string
 	UUID string
+	POS  Pos
+}
+
+type Pos struct {
+	X string
+	Y string
+	Z string
 }

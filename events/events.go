@@ -65,4 +65,6 @@ var (
 	UnknownItemEvent   = NewGameEvent(UnknownItem)
 	PlayerLeftEvent    = NewGameEvent(PlayerLeft)
 	PlayerUUIDEvent    = NewGameEvent(PlayerUUID)
+	PlayerPosEvent    = NewGameEvent(PlayerPos)
+	PlayerJoinedEvent = NewGameEvent(PlayerJoined)
 )

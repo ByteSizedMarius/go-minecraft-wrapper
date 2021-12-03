@@ -86,7 +86,7 @@ type Wrapper struct {
 	parser         LogParser
 	clock          *clock
 	eq             *eventsQueue
-	playerList     map[string]string
+	playerList     map[string]Player
 	ctxCancelFunc  context.CancelFunc
 	gameEventsChan chan (events.GameEvent)
 	loadedChan     chan bool
@@ -107,7 +107,7 @@ func NewWrapper(c Console, p LogParser) *Wrapper {
 		parser:         p,
 		clock:          newClock(),
 		eq:             newEventsQueue(),
-		playerList:     map[string]string{},
+		playerList:     map[string]Player{},
 		ctxCancelFunc:  func() {},
 		gameEventsChan: make(chan events.GameEvent, 10),
 		loadedChan:     make(chan bool, 1),
@@ -186,8 +186,19 @@ func (w *Wrapper) handleGameEvent(ev events.GameEvent) {
 	if ev.Is(events.PlayerLeftEvent) {
 		delete(w.playerList, ev.Data["player_name"])
 	}
+	if ev.Is(events.PlayerJoinedEvent) {
+		p := Player{Name: ev.Data["player_name"]}
+		w.playerList[ev.Data["player_name"]] = p
+	}
 	if ev.Is(events.PlayerUUIDEvent) {
-		w.playerList[ev.Data["player_name"]] = ev.Data["player_uuid"]
+		p := w.playerList[ev.Data["player_name"]]
+		p.UUID = ev.Data["player_uuid"]
+		w.playerList[ev.Data["player_name"]] = p
+	}
+	if ev.Is(events.PlayerPosEvent) {
+		p := w.playerList[ev.Data["player_name"]]
+		p.POS = Pos{ev.Data["player_pos_x"], ev.Data["player_pos_y"], ev.Data["player_pos_z"]}
+		w.playerList[ev.Data["player_name"]] = p
 	}
 	select {
 	case w.gameEventsChan <- ev:
@@ -200,6 +211,19 @@ func (w *Wrapper) writeToConsole(cmd string) error {
 		return ErrWrapperNotOnline
 	}
 	return w.console.WriteCmd(cmd)
+}
+
+func (w *Wrapper) updatePlayer() {
+	for {
+		if w.State() == "online" {
+			for k, _ := range w.playerList {
+				w.writeToConsole("data get entity " + w.playerList[k].Name + " Pos")
+			}
+			time.Sleep(30 * time.Second)
+		} else {
+			time.Sleep(1 * time.Second)
+		}
+	}
 }
 
 func (w *Wrapper) processClock(ctx context.Context) {
@@ -435,12 +459,10 @@ func (w *Wrapper) Kick(target, reason string) error {
 
 // List returns a list of connected players on the server.
 func (w *Wrapper) List() []Player {
+	// this can be done nicer
 	players := []Player{}
-	for name, uuid := range w.playerList {
-		players = append(players, Player{
-			Name: name,
-			UUID: uuid,
-		})
+	for k, _ := range w.playerList {
+		players = append(players, w.playerList[k])
 	}
 	return players
 }
@@ -503,6 +525,7 @@ func (w *Wrapper) Start() error {
 	if !w.machine.Is(WrapperOffline) {
 		return fmt.Errorf("cannot Start when wrapper is in %s state", w.State())
 	}
+	go w.updatePlayer()
 	ctx, cancel := context.WithCancel(context.Background())
 	w.ctxCancelFunc = cancel
 	go w.processLogEvents(ctx)

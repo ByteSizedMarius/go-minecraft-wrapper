@@ -36,6 +36,7 @@ const (
 	ExperienceQuery         = "experience-query"
 	Give                    = "give"
 	NoPlayerFound           = "no-player-found"
+	PlayerPos               = "following-entity-data"
 	PlayerJoined            = "player-joined"
 	PlayerLeft              = "player-left"
 	PlayerUUID              = "player-uuid"
