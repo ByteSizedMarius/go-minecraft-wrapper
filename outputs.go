@@ -1,5 +1,7 @@
 package wrapper
 
+import "time"
+
 // DataGetOutput represents the structured data logged from the
 // '/data get entity' command. Some fields might not be of the
 // right or precise type since the decoder will coerse any value
@@ -71,9 +73,11 @@ type RecipeBook struct {
 }
 
 type Player struct {
-	Name string
-	UUID string
-	POS  Pos
+	Name       string
+	Dimension  string
+	UUID       string
+	POS        Pos
+	LastUpdate time.Time
 }
 
 type Pos struct {

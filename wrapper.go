@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -200,13 +201,6 @@ func (w *Wrapper) handleGameEvent(ev events.GameEvent) {
 		p.UUID = ev.Data["player_uuid"]
 		w.playerList[ev.Data["player_name"]] = p
 	}
-
-	// todo one can probably do this with DataGet instead
-	if ev.Is(events.PlayerPosEvent) {
-		p := w.playerList[ev.Data["player_name"]]
-		p.POS = Pos{ev.Data["player_pos_x"], ev.Data["player_pos_y"], ev.Data["player_pos_z"]}
-		w.playerList[ev.Data["player_name"]] = p
-	}
 	select {
 	case w.gameEventsChan <- ev:
 	default:
@@ -222,9 +216,15 @@ func (w *Wrapper) writeToConsole(cmd string) error {
 
 func (w *Wrapper) updatePlayer() {
 	for {
-		if w.State() == "online" {
+		if w.State() == "online" && len(w.playerList) > 0 {
 			for k, _ := range w.playerList {
-				w.writeToConsole("data get entity " + w.playerList[k].Name + " Pos")
+				name := w.playerList[k].Name
+
+				dgo, err := w.DataGet("entity", name)
+				if err != nil {
+					log.Print("err on player position update: " + err.Error())
+				}
+				w.playerList[name] = Player{Name: name, LastUpdate: time.Now(), Dimension: dgo.Dimension, POS: Pos{strconv.Itoa(int(dgo.Pos[0])), strconv.Itoa(int(dgo.Pos[0])), strconv.Itoa(int(dgo.Pos[0]))}}
 			}
 			time.Sleep(30 * time.Second)
 		} else {
@@ -318,15 +318,15 @@ func (w *Wrapper) processCmdToEventArr(cmd string, timeout time.Duration, eve st
 }
 
 func (w *Wrapper) WhitelistAdd(player string) (events.GameEvent, error) {
-	return w.processCmdToEvent(strings.Join([]string{"whitelist", "add", player}, " "), time.Second*2, events.WhitelistAdd)
+	return w.processCmdToEvent(strings.Join([]string{"whitelist", "add", player}, " "), time.Second*5, events.WhitelistAdd)
 }
 
 func (w *Wrapper) WhitelistList() (events.GameEvent, error) {
-	return w.processCmdToEvent(strings.Join([]string{"whitelist", "list"}, " "), time.Second*2, events.WhitelistList)
+	return w.processCmdToEvent(strings.Join([]string{"whitelist", "list"}, " "), time.Second*5, events.WhitelistList)
 }
 
 func (w *Wrapper) WhitelistRemove(player string) (events.GameEvent, error) {
-	return w.processCmdToEvent(strings.Join([]string{"whitelist", "remove", player}, " "), time.Second*2, events.WhitelistRemove)
+	return w.processCmdToEvent(strings.Join([]string{"whitelist", "remove", player}, " "), time.Second*5, events.WhitelistRemove)
 }
 
 // BanIP adds the input IP address to the servers blacklisted IPs list.
@@ -413,7 +413,7 @@ func (w *Wrapper) ExperienceQuery(target string, xpType ExperienceType) (int, er
 	return strconv.Atoi(ev.Data["amount"])
 }
 
-// ForceLoadAll removes the constant force loads on all chunks in the dimension.
+// ForceLoadRemoveAll removes the constant force loads on all chunks in the dimension.
 func (w *Wrapper) ForceLoadRemoveAll() error {
 	return w.writeToConsole("forceload remove all")
 }
@@ -473,8 +473,7 @@ func (w *Wrapper) Kick(target, reason string) error {
 
 // List returns a list of connected players on the server.
 func (w *Wrapper) List() []Player {
-	// this can be done nicer
-	players := []Player{}
+	var players []Player
 	for k, _ := range w.playerList {
 		players = append(players, w.playerList[k])
 	}
