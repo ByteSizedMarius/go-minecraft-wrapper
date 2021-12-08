@@ -1,7 +1,6 @@
 package wrapper
 
 import (
-	"fmt"
 	"github.com/ByteSizedMarius/go-minecraft-wrapper/events"
 	"regexp"
 	"strconv"
@@ -178,9 +177,6 @@ func handleWhitelistRemove(matches []string) (events.GameEvent, events.EventType
 		waEvent.Data = map[string]string{
 			"removed_player_name": matches[1],
 		}
-	} else {
-		// todo remove if its fine :)
-		panic("????" + fmt.Sprint(matches))
 	}
 
 	return waEvent, events.TypeCmd
@@ -197,9 +193,6 @@ func handleWhitelistAdd(matches []string) (events.GameEvent, events.EventType) {
 		waEvent.Data = map[string]string{
 			"added_player_name": matches[1],
 		}
-	} else {
-		// todo remove if its fine :)
-		panic("????" + fmt.Sprint(matches))
 	}
 
 	return waEvent, events.TypeCmd

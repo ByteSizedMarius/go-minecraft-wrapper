@@ -24,6 +24,12 @@ const (
 	WrapperSaving   = "saving"
 )
 
+/*
+todo
+auto turn off after x minutes
+waypoints
+*/
+
 var (
 	// ErrWrapperResponseTimeout is returned when a command fails to receive
 	// its respective event from the server logs within some timeframe. Hence
@@ -150,8 +156,14 @@ func (w *Wrapper) processLogEvents(ctx context.Context) {
 			}
 
 			if strings.Contains(line, "used by another process") {
-				// this can only happen during development, its just an fyi
-				panic("Server was not stopped correctly. Kill from task-manager")
+				log.Print("Server was not stopped correctly. Trying to kill instance: ")
+				err = w.Kill()
+				if err != nil {
+					log.Println("unsuccessful: " + err.Error())
+					panic(err)
+				} else {
+					log.Println("successful")
+				}
 			}
 
 			ev, t := w.parseLineToEvent(line)
