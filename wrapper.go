@@ -123,6 +123,29 @@ func NewWrapper(c Console, p LogParser) *Wrapper {
 	return wpr
 }
 
+func autoStopHandler(after time.Duration, w *Wrapper) {
+	timeLastPlayerOn := time.Now()
+
+	for {
+		if len(w.List()) == 0 && w.State() == "online" {
+			if timeLastPlayerOn.Add(after).Before(time.Now()) {
+				err := w.Stop()
+				if err != nil {
+					log.Println("Error when auto-stopping: " + err.Error())
+				}
+			}
+		} else {
+			timeLastPlayerOn = time.Now()
+		}
+
+		time.Sleep(time.Minute)
+	}
+}
+
+func (w *Wrapper) AutoStop(after time.Duration) {
+	go autoStopHandler(after, w)
+}
+
 func (w *Wrapper) newFSM() {
 	w.machine = fsm.NewFSM(
 		WrapperOffline,
@@ -551,11 +574,11 @@ func (w *Wrapper) Start() error {
 	if !w.machine.Is(WrapperOffline) {
 		return fmt.Errorf("cannot Start when wrapper is in %s state", w.State())
 	}
-	go w.updatePlayer()
 	ctx, cancel := context.WithCancel(context.Background())
 	w.ctxCancelFunc = cancel
 	go w.processLogEvents(ctx)
 	go w.processClock(ctx)
+	go w.updatePlayer()
 	return w.console.Start()
 }
 
