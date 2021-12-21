@@ -25,6 +25,11 @@ type logLine struct {
 var logRegex = regexp.MustCompile(`(\[[0-9:]*\]) \[([A-z(-| )#0-9]*)\/([A-z #]*)\]: (.*)`)
 
 func parseToLogLine(line string) *logLine {
+	// 1.18
+	if strings.HasPrefix(line, "Starting net.minecraft.server.Main") {
+		return &logLine{}
+	}
+
 	matches := logRegex.FindAllStringSubmatch(line, 4)
 	return &logLine{
 		timestamp:  matches[0][1],
