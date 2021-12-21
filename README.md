@@ -1,14 +1,12 @@
 # Why is this fork a thing?
 
 - Starting the server in 1.18 works (Mojang added a random message in 1.18 that basically just say "watch out, servers starting now" which the original repo can't yet handle.)
-- Auto-Stop Server (Allows the wrapper to automatically stop the server, if the server is empty for <duration>)
+- Auto-Stop Server (Allows the wrapper to automatically stop the server, if the server is empty for a given duration)
 - Whitelist Stuff (print current whitelist, add to- and remove from whitelist)
 - Playerlist ( List() ) will now not only return a list of currently connected player, but also their position (updated twice a minute)
 - I added lots of missing death-messages (haven't gotten around to testing on this though)
 
-Thanks to wlwanpan for the heavy lifting, which allowed me to add the stuff I personally needed within a couple of hours. 
-
-	
+Thanks to wlwanpan for the heavy lifting, which allowed me to add the stuff I personally needed within a couple of hours. (original readme starts here)	
 	
 # minecraft-wrapper
 
