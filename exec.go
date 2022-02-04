@@ -3,7 +3,10 @@ package wrapper
 import (
 	"fmt"
 	"io"
+	"log"
+	"os"
 	"os/exec"
+	"path"
 )
 
 type JavaExec interface {
@@ -39,5 +42,28 @@ func javaExecCmd(serverPath string, initialHeapSize, maxHeapSize int) *defaultJa
 	initialHeapFlag := fmt.Sprintf("-Xms%dM", initialHeapSize)
 	maxHeapFlag := fmt.Sprintf("-Xmx%dM", maxHeapSize)
 	cmd := exec.Command("java", initialHeapFlag, maxHeapFlag, "-jar", serverPath, "nogui")
+
+	// normalize path
+	serverPathClean := path.Clean(serverPath)
+
+	// check if path is a dir
+	file, err := os.Open(serverPathClean)
+	if err != nil {
+		log.Print(err)
+		return &defaultJavaExec{}
+	}
+
+	info, err := file.Stat()
+	if err != nil {
+		log.Print(err)
+		return &defaultJavaExec{}
+	}
+
+	// if given path is a directory (aka if this program is executed in different directory),
+	// change the directory, the jar will be executed from
+	if !info.IsDir() {
+		cmd.Dir = path.Dir(serverPath)
+	}
+
 	return &defaultJavaExec{cmd: cmd}
 }
